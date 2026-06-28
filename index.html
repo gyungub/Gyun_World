@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>균균월드 (GyunWorld)</title>
+    <style>
+        /* ==================== 전역 스타일 및 초기화 ==================== */
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #111;
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+        }
+
+        /* ==================== 게임 화면 레이아웃 ==================== */
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            background-color: #222;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            display: block;
+        }
+
+        /* ==================== 모바일 UI (조이스틱) ==================== */
+        #joystick-zone {
+            position: absolute;
+            bottom: 40px;
+            left: 40px;
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: none; 
+            touch-action: none;
+            z-index: 10;
+        }
+        #joystick-stick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            top: 45px;
+            left: 45px;
+        }
+
+        /* ==================== 상단 UI (상태창) ==================== */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .ui-box {
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+        }
+        .coin-icon { color: #ffd700; }
+        .time-icon { color: #87ceeb; }
+
+        /* ==================== 대화창 시스템 ==================== */
+        #dialogue-box {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 700px;
+            height: 130px;
+            background: rgba(20, 20, 25, 0.95);
+            border: 3px solid #555;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            display: none;
+            z-index: 100;
+            cursor: pointer;
+        }
+        #dialogue-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffeb3b;
+            margin-bottom: 5px;
+        }
+        #dialogue-text {
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        /* ==================== 로딩 화면 레이아웃 ==================== */
+        #loading-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0b0f19;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        #loading-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .game-profile-logo {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .game-profile-logo h1 {
+            font-size: 42px;
+            color: #2ecc71;
+            text-shadow: 0 0 15px rgba(46, 204, 113, 0.6);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .game-profile-logo p {
+            font-size: 16px;
+            color: #888;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #2ecc71;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 60px;
+        }
+        .tip-box {
+            position: absolute;
+            bottom: 60px;
+            background: rgba(255,255,255,0.05);
+            border-left: 4px solid #2ecc71;
+            padding: 15px 25px;
+            max-width: 600px;
+            width: 80%;
+            border-radius: 0 8px 8px 0;
+        }
+        .tip-title {
+            font-size: 13px;
+            color: #2ecc71;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .tip-text {
+            font-size: 15px;
+            color: #ddd;
+            line-height: 1.4;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 상단 HUD 레이어 -->
+    <div id="ui-layer">
+        <div class="ui-box" id="info-hud">
+            <div><span class="time-icon">⏰</span> <span id="hud-time">오전 06:00</span></div>
+            <div><span style="color:#a8ffb2;">🌤️</span> <span id="hud-weather">맑음</span></div>
+            <div><span style="color:#ff7676;">📍</span> <span id="hud-map">내 방</span></div>
+        </div>
+        <div class="ui-box" id="wallet-hud">
+            <span class="coin-icon">🪙</span> <span id="hud-coin">0</span> 원
+        </div>
+    </div>
+
+    <!-- 모바일 터치 패드 조이스틱 -->
+    <div id="joystick-zone">
+        <div id="joystick-stick"></div>
+    </div>
+
+    <!-- RPG 대화 레이어 -->
+    <div id="dialogue-box" onclick="DialogueSystem.next()">
+        <div id="dialogue-name">이름</div>
+        <div id="dialogue-text">대사 내용</div>
+    </div>
+
+    <!-- 3초 버스 등교 로딩 연출 화면 -->
+    <div id="loading-screen">
+        <div class="game-profile-logo">
+            <h1>GYUN WORLD</h1>
+            <p>버스를 타고 학교로 이동하는 중...</p>
+        </div>
+        <div class="loading-spinner"></div>
+        <div class="tip-box">
+            <div class="tip-title">등교 가이드 팁</div>
+            <div class="tip-text" id="loading-tip-text">팁 불러오는 중...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================================
+// 데이터 관리 및 저장 시스템 (LocalStorage)
+// ============================================================================
+const SaveManager = {
+    SAVE_KEY: "GYUNWORLD_SAVE_DATA_V7",
+    
+    defaultData: {
+        player: { coin: 1000, inventory: [], currentMap: "myRoom", x: 400, y: 300 },
+        env: { time: "오전 06:00", weather: "맑은 날" },
+        unlockedTriggers: []
+    },
+
+    save(customData) {
+        localStorage.setItem(this.SAVE_KEY, JSON.stringify(customData));
+    },
+
+    load() {
+        const rawData = localStorage.getItem(this.SAVE_KEY);
+        if (!rawData) return JSON.parse(JSON.stringify(this.defaultData));
+        try { 
+            let parsed = JSON.parse(rawData);
+            parsed.player.currentMap = "myRoom";
+            parsed.player.x = 400;
+            parsed.player.y = 300;
+            parsed.env.time = "오전 06:00";
+            return parsed;
+        } catch (e) { 
+            return JSON.parse(JSON.stringify(this.defaultData)); 
+        }
+    }
+};
+
+// ============================================================================
+// 글로벌 게임 상태 관리 객체 (Global Engine State)
+// ============================================================================
+const Game = {
+    canvas: null, ctx: null, data: null, scale: 1, baseWidth: 1280, baseHeight: 720, isMobile: false,
+    input: { x: 0, y: 0, keys: {} },
+    isLoading: false,
+
+    init() {
+        this.canvas = document.getElementById("gameCanvas");
+        this.ctx = this.canvas.getContext("2d");
+        this.data = SaveManager.load();
+        
+        this.checkDevice();
+        this.resizeCanvas();
+        window.addEventListener("resize", () => this.resizeCanvas());
+
+        InputManager.init();
+        MapManager.init();
+        
+        if (this.isMobile) {
+            document.getElementById("joystick-zone").style.display = "block";
+        }
+
+        this.updateHUD();
+        window.requestAnimationFrame((timestamp) => this.loop(timestamp));
+    },
+
+    teleport(mapId) {
+        if (MapManager.maps[mapId]) {
+            console.log(`${mapId} 구역으로 강제 이동합니다.`);
+            MapManager.changeMap(mapId, true);
+        } else {
+            console.warn(`존재하지 않는 맵 ID입니다: ${mapId}`);
+        }
+    },
+
+    checkDevice() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        if (/android|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od|ad)|iris|kindle|lge |maemo|midp|mmp|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(userAgent)) {
+            this.isMobile = true;
+        }
+    },
+
+    resizeCanvas() {
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+        let targetWidth = windowWidth;
+        let targetHeight = windowWidth * (this.baseHeight / this.baseWidth);
+
+        if (targetHeight > windowHeight) {
+            targetHeight = windowHeight;
+            targetWidth = windowHeight * (this.baseWidth / this.baseHeight);
+        }
+
+        this.canvas.width = this.baseWidth;
+        this.canvas.height = this.baseHeight;
+        this.canvas.style.width = `${targetWidth}px`;
+        this.canvas.style.height = `${targetHeight}px`;
+        this.scale = targetWidth / this.baseWidth;
+    },
+
+    updateHUD() {
+        document.getElementById("hud-time").innerText = this.data.env.time;
+        document.getElementById("hud-weather").innerText = this.data.env.weather;
+        document.getElementById("hud-coin").innerText = this.data.player.coin.toLocaleString();
+        
+        const mapNames = {
+            "myRoom": "내 방", "livingRoom": "거실", "entrance": "현관",
+            "corridor": "아파트 복도", "elevator": "엘리베이터", "floor1": "아파트 1층",
+            "outside": "아파트 밖", "convenienceZone": "편의점 길목", "convenienceStore": "편의점 내부",
+            "busStop": "버스 정류장", "schoolFront": "학교 앞", 
+            "school1F": "학교 1층 복도", "school2F": "학교 2층 복도", "school3F": "학교 3층 대음악실",
+            "room_class1": "1학년 교실 내부", "room_art": "미술실 내부", "room_tech": "기술가정실 내부",
+            "room_principal": "교장실 내부", "room_support": "통합지원반 내부", "room_medical": "보건실 내부", "room_library": "도서관 내부",
+            "room_staff": "교무실 내부", "room_class2": "2학년 교실 내부", "room_class3": "3학년 교실 내부",
+            "room_computer": "컴퓨터실 내부", "room_career": "진로상담실 내부", "room_weclass": "상담실 내부",
+            "room_council": "학생자치회실 내부", "room_science": "과학실 내부"
+        };
+        document.getElementById("hud-map").innerText = mapNames[this.data.player.currentMap] || "알 수 없음";
+    },
+
+    startBusLoading(targetMapId) {
+        this.isLoading = true;
+        Game.input.x = 0; Game.input.y = 0;
+
+        const tips = [
+            "학주 선생님에게 걸리면 벌점을 받으니 8시 30분 전까지 무조건 입실하세요.",
+            "새로 리뉴얼된 학교 3층 대음악실은 전교생이 모일 수 있을 만큼 거대합니다.",
+            "1층 보건실에 가면 아픈 곳을 치료받거나 잠시 쉴 수 있습니다.",
+            "2층 교무실 근처를 지나갈 때는 항상 조용히 보행해야 합니다."
+        ];
+        const randomTip = tips[Math.floor(Math.random() * tips.length)];
+        document.getElementById("loading-tip-text").innerText = randomTip;
+
+        const screen = document.getElementById("loading-screen");
+        screen.classList.add("active");
+
+        setTimeout(() => {
+            this.data.env.time = "오전 08:20"; 
+            MapManager.changeMap(targetMapId, true);
+            screen.classList.remove("active");
+            this.isLoading = false;
+        }, 3000);
+    },
+
+    update(dt) {
+        if (this.isLoading) return;
+        Player.update(dt);
+        Camera.update();
+        MapManager.update(dt);
+    },
+
+    render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.save();
+        this.ctx.translate(Math.floor(this.canvas.width/2 - Camera.x), Math.floor(this.canvas.height/2 - Camera.y));
+        
+        MapManager.renderBackground(this.ctx);
+        
+        const renderQueue = [];
+        renderQueue.push(Player);
+        renderQueue.sort((a, b) => a.y - b.y);
+        renderQueue.forEach(entity => entity.render(this.ctx));
+
+        this.ctx.restore();
+    },
+
+    lastTime: 0,
+    loop(timestamp) {
+        if (!this.lastTime) this.lastTime = timestamp;
+        let dt = (timestamp - this.lastTime) / 1000;
+        if (dt > 0.1) dt = 0.1; 
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.render();
+
+        window.requestAnimationFrame((timestamp) => this.loop(timestamp));
+    }
+};
+
+// ============================================================================
+// 입력 관리 매니저 (InputManager)
+// ============================================================================
+const InputManager = {
+    init() {
+        window.addEventListener("keydown", (e) => {
+            if (Game.isLoading) return;
+            const key = e.key.toLowerCase();
+            Game.input.keys[key] = true;
+            this.updateKeyboardVector();
+            
+            if (key === "f" || e.key === " ") {
+                ObjectManager.checkInteraction();
+                NPCManager.checkNPCInteraction();
+            }
+        });
+
+        window.addEventListener("keyup", (e) => {
+            const key = e.key.toLowerCase();
+            Game.input.keys[key] = false;
+            this.updateKeyboardVector();
+        });
+
+        window.addEventListener("pointerdown", (e) => {
+            if (DialogueSystem.isActive) return;
+            if (Game.isLoading) return;
+            if (e.clientX > 220) {
+                ObjectManager.checkInteraction();
+                NPCManager.checkNPCInteraction();
+            }
+        });
+
+        const zone = document.getElementById("joystick-zone");
+        const stick = document.getElementById("joystick-stick");
+        let startX = 0, startY = 0;
+        let maxRadius = 45;
+
+        zone.addEventListener("touchstart", (e) => {
+            const touch = e.touches[0];
+            const rect = zone.getBoundingClientRect();
+            startX = rect.left + rect.width / 2;
+            startY = rect.top + rect.height / 2;
+        });
+
+        zone.addEventListener("touchmove", (e) => {
+            if (Game.isLoading) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            let moveX = touch.clientX - startX;
+            let moveY = touch.clientY - startY;
+            let distance = Math.sqrt(moveX * moveX + moveY * moveY);
+
+            if (distance > maxRadius) {
+                moveX = (moveX / distance) * maxRadius;
+                moveY = (moveY / distance) * maxRadius;
+                distance = maxRadius;
+            }
+
+            stick.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            Game.input.x = moveX / maxRadius;
+            Game.input.y = moveY / maxRadius;
+        });
+
+        zone.addEventListener("touchend", () => {
+            stick.style.transform = "translate(0px, 0px)";
+            Game.input.x = 0;
+            Game.input.y = 0;
+        });
+    },
+
+    updateKeyboardVector() {
+        let vx = 0; let vy = 0;
+        if (Game.input.keys["w"] || Game.input.keys["arrowup"]) vy -= 1;
+        if (Game.input.keys["s"] || Game.input.keys["arrowdown"]) vy += 1;
+        if (Game.input.keys["a"] || Game.input.keys["arrowleft"]) vx -= 1;
+        if (Game.input.keys["d"] || Game.input.keys["arrowright"]) vx += 1;
+
+        if (vx !== 0 && vy !== 0) { vx *= 0.7071; vy *= 0.7071; }
+        Game.input.x = vx;
+        Game.input.y = vy;
+    }
+};
+
+// ============================================================================
+// 카메라 제어 시스템 (Camera)
+// ============================================================================
+const Camera = {
+    x: 0, y: 0, lerpFactor: 0.1,
+    init() { this.x = Player.x; this.y = Player.y; },
+    update() {
+        this.x += (Player.x - this.x) * this.lerpFactor;
+        this.y += (Player.y - this.y) * this.lerpFactor;
+        if (MapManager.current) {
+            const minX = Game.baseWidth / 2; const minY = Game.baseHeight / 2;
+            const maxX = MapManager.current.width - Game.baseWidth / 2;
+            const maxY = MapManager.current.height - Game.baseHeight / 2;
+            if (MapManager.current.width < Game.baseWidth) this.x = MapManager.current.width / 2;
+            else { if (this.x < minX) this.x = minX; if (this.x > maxX) this.x = maxX; }
+            if (MapManager.current.height < Game.baseHeight) this.y = MapManager.current.height / 2;
+            else { if (this.y < minY) this.y = minY; if (this.y > maxY) this.y = maxY; }
+        }
+    }
+};
+
+// ============================================================================
+// 플레이어 엔티티 (Player)
+// ============================================================================
+const Player = {
+    x: 0, y: 0, width: 40, height: 40, speed: 280,
+    init() {
+        if (MapManager.current && MapManager.current.spawnPoints) {
+            this.x = MapManager.current.spawnPoints.x; this.y = MapManager.current.spawnPoints.y;
+        }
+    },
+    update(dt) {
+        if (DialogueSystem.isActive) return;
+        const vx = Game.input.x; const vy = Game.input.y;
+        if (vx !== 0 || vy !== 0) {
+            const nextX = this.x + vx * this.speed * dt;
+            if (!this.checkCollision(nextX, this.y)) this.x = nextX;
+            const nextY = this.y + vy * this.speed * dt;
+            if (!this.checkCollision(this.x, nextY)) this.y = nextY;
+            Game.data.player.x = this.x; Game.data.player.y = this.y;
+        }
+    },
+    checkCollision(targetX, targetY) {
+        const left = targetX - this.width / 2; const right = targetX + this.width / 2;
+        const top = targetY - this.height / 2; const bottom = targetY + this.height / 2;
+        if (!MapManager.current) return false;
+        if (left < 0 || right > MapManager.current.width || top < 0 || bottom > MapManager.current.height) return true;
+        const colliders = MapManager.current.colliders || [];
+        for (let i = 0; i < colliders.length; i++) {
+            const wall = colliders[i];
+            if (right > wall.x && left < wall.x + wall.w && bottom > wall.y && top < wall.y + wall.h) return true;
+        }
+        return false;
+    },
+    render(ctx) {
+        ctx.save();
+        ctx.fillStyle = "#2ecc71";
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(this.x - 8, this.y - 4, 5, 0, Math.PI * 2); ctx.arc(this.x + 8, this.y - 4, 5, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "#000000";
+        ctx.beginPath(); ctx.arc(this.x - 8, this.y - 4, 2, 0, Math.PI * 2); ctx.arc(this.x + 8, this.y - 4, 2, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+};
+
+// ============================================================================
+// 대화 연출 시스템 (DialogueSystem)
+// ============================================================================
+const DialogueSystem = {
+    isActive: false, list: [], index: 0, callback: null,
+    start(dialogues, onComplete = null) {
+        this.list = dialogues; this.index = 0; this.isActive = true; this.callback = onComplete;
+        document.getElementById("dialogue-box").style.display = "block";
+        this.show();
+    },
+    show() {
+        if (this.index >= this.list.length) { this.close(); return; }
+        const current = this.list[this.index];
+        document.getElementById("dialogue-name").innerText = current.name;
+        document.getElementById("dialogue-text").innerText = current.text;
+    },
+    next() { this.index++; this.show(); },
+    close() {
+        this.isActive = false;
+        document.getElementById("dialogue-box").style.display = "none";
+        if (this.callback) this.callback();
+    }
+};
+
+// ============================================================================
+// 상호작용 매니저 (ObjectManager)
+// ============================================================================
+const ObjectManager = {
+    checkInteraction() {
+        if (DialogueSystem.isActive || Game.isLoading) return;
+        const currentMap = MapManager.current;
+        if (!currentMap || !currentMap.objects) return;
+        
+        for (let i = 0; i < currentMap.objects.length; i++) {
+            const obj = currentMap.objects[i];
+            const radius = obj.interactRadius || 85; 
+            const dist = Math.sqrt((Player.x - obj.x) ** 2 + (Player.y - obj.y) ** 2);
+            if (dist < radius) {
+                if (obj.onInteract) obj.onInteract();
+                else DialogueSystem.start(obj.dialogues);
+                break;
+            }
+        }
+    },
+    render(ctx, objects) {
+        if (!objects) return;
+        objects.forEach(obj => {
+            ctx.save();
+            ctx.fillStyle = obj.color || "#e67e22";
+            ctx.fillRect(obj.x - obj.w/2, obj.y - obj.h/2, obj.w, obj.h);
+            ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 2;
+            ctx.strokeRect(obj.x - obj.w/2, obj.y - obj.h/2, obj.w, obj.h);
+
+            const radius = obj.interactRadius || 85;
+            const dist = Math.sqrt((Player.x - obj.x) ** 2 + (Player.y - obj.y) ** 2);
+            if (dist < radius && !DialogueSystem.isActive) {
+                ctx.fillStyle = "#ffeb3b"; ctx.font = "bold 15px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText(`[F] ${obj.actionName || '조사하기'}`, obj.x, obj.y - obj.h/2 - 12);
+            } else {
+                ctx.fillStyle = "rgba(255,255,255,0.7)"; ctx.font = "12px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText(obj.name, obj.x, obj.y - obj.h/2 - 6);
+            }
+            ctx.restore();
+        });
+    }
+};
+
+// ============================================================================
+// NPC 관리 및 레이어 매니저 (NPCManager)
+// ============================================================================
+const NPCManager = {
+    interactRadius: 75,
+    checkNPCInteraction() {
+        if (DialogueSystem.isActive || Game.isLoading) return;
+        const currentMap = MapManager.current;
+        if (!currentMap || !currentMap.npcs) return;
+        for (let i = 0; i < currentMap.npcs.length; i++) {
+            const npc = currentMap.npcs[i];
+            const dist = Math.sqrt((Player.x - npc.x) ** 2 + (Player.y - npc.y) ** 2);
+            if (dist < this.interactRadius) {
+                DialogueSystem.start(npc.dialogues);
+                break;
+            }
+        }
+    },
+    render(ctx, npcs) {
+        if (!npcs) return;
+        npcs.forEach(npc => {
+            ctx.save();
+            ctx.fillStyle = npc.color || "#e74c3c";
+            ctx.beginPath(); ctx.arc(npc.x, npc.y, 20, 0, Math.PI * 2); ctx.fill();
+
+            const dist = Math.sqrt((Player.x - npc.x) ** 2 + (Player.y - npc.y) ** 2);
+            if (dist < this.interactRadius && !DialogueSystem.isActive) {
+                ctx.fillStyle = "#5dade2"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center";
+                ctx.fillText("[F] 대화하기", npc.x, npc.y - 42);
+            }
+            ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(npc.name, npc.x, npc.y - 26);
+            ctx.restore();
+        });
+    }
+};
+
+// ============================================================================
+// 맵 관리 매니저 및 전체 월드 구조체 (MapManager)
+// ============================================================================
+const MapManager = {
+    current: null, maps: {}, triggeredEvents: {},
+    init() {
+        this.buildWorldData();
+        if (!Game.data.unlockedTriggers) Game.data.unlockedTriggers = [];
+        Game.data.unlockedTriggers.forEach(id => this.triggeredEvents[id] = true);
+        this.changeMap("myRoom", false);
+    },
+    changeMap(mapId, useSpawnInfo = true) {
+        if (!this.maps[mapId]) return;
+        this.current = this.maps[mapId];
+        Game.data.player.currentMap = mapId;
+        if (this.current.spawnPoints) {
+            Player.x = this.current.spawnPoints.x; Player.y = this.current.spawnPoints.y;
+        }
+        Game.updateHUD(); Camera.init(); SaveManager.save(Game.data);
+
+        if (this.current.forcedEvent && !this.triggeredEvents[this.current.forcedEvent.id]) {
+            const eventId = this.current.forcedEvent.id;
+            this.triggeredEvents[eventId] = true; Game.data.unlockedTriggers.push(eventId);
+            setTimeout(() => { DialogueSystem.start(this.current.forcedEvent.dialogues, () => SaveManager.save(Game.data)); }, 300);
+        }
+    },
+    update(dt) {
+        if (!this.current || Game.isLoading) return;
+        const portals = this.current.portals || [];
+        for (let i = 0; i < portals.length; i++) {
+            const p = portals[i];
+            const dist = Math.sqrt((Player.x - p.x) ** 2 + (Player.y - p.y) ** 2);
+            if (dist < p.radius) {
+                this.changeMap(p.targetMap, true); break;
+            }
+        }
+    },
+    renderBackground(ctx) {
+        if (!this.current) return;
+        ctx.fillStyle = this.current.bgColor || "#2c3e50"; ctx.fillRect(0, 0, this.current.width, this.current.height);
+        ctx.strokeStyle = "rgba(255,255,255,0.03)"; ctx.lineWidth = 1;
+        for (let x = 0; x < this.current.width; x += 50) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.current.height); ctx.stroke(); }
+        for (let y = 0; y < this.current.height; y += 50) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.current.width, y); ctx.stroke(); }
+        ctx.fillStyle = this.current.wallColor || "#34495e"; (this.current.colliders || []).forEach(w => ctx.fillRect(w.x, w.y, w.w, w.h));
+        ObjectManager.render(ctx, this.current.objects); NPCManager.render(ctx, this.current.npcs);
+        (this.current.portals || []).forEach(p => {
+            ctx.strokeStyle = p.color || "rgba(52, 152, 219, 0.7)"; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.stroke();
+            ctx.fillStyle = p.fillColor || "rgba(52, 152, 219, 0.2)"; ctx.fill();
+            ctx.fillStyle = "#fff"; ctx.font = "bold 13px sans-serif"; ctx.textAlign = "center";
+            ctx.fillText(p.label || "이동", p.x, p.y - p.radius - 5);
+        });
+    },
+
+    buildWorldData() {
+        // 공통 방 구조 생성 헬퍼 함수
+        const makeRoom = (name, bgColor, objects = [], npcs = [], exitMap = "school1F", exitX = 200) => {
+            return {
+                width: 1000, height: 700, bgColor: bgColor, wallColor: "#2c3e50", spawnPoints: { x: 500, y: 550 },
+                colliders: [{x:0, y:0, w:1000, h:50}, {x:0, y:0, w:50, h:700}, {x:950, y:0, w:50, h:700}, {x:0, y:650, w:1000, h:50}],
+                objects: objects, npcs: npcs,
+                portals: [{ x: 500, y: 610, radius: 40, targetMap: exitMap, label: "복도로 나가기", color: "rgba(231, 76, 60, 0.8)", fillColor: "rgba(231, 76, 60, 0.2)" }]
+            };
+        };
+
+        this.maps = {
+            "myRoom": {
+                width: 800, height: 600, bgColor: "#1a252f", wallColor: "#2c3e50", spawnPoints: { x: 400, y: 300 },
+                colliders: [{x:0, y:0, w:800, h:40}, {x:0, y:0, w:40, h:600}, {x:760, y:0, w:40, h:600}, {x:0, y:560, w:800, h:40}],
+                objects: [
+                    { name: "내 침대", x: 160, y: 120, w: 120, h: 140, color: "#5dade2", dialogues: [{ name: "균", text: "지금 다시 자면 100% 지각이야." }] },
+                    { name: "컴퓨터 책상", x: 620, y: 120, w: 140, h: 80, color: "#7e5109", dialogues: [{ name: "균", text: "어젯밤 늦게까지 코딩을 하느라 피곤하군..." }] }
+                ],
+                portals: [{ x: 400, y: 520, radius: 35, targetMap: "livingRoom", label: "거실로 나가기" }]
+            },
+            "livingRoom": {
+                width: 1200, height: 900, bgColor: "#2e4053", wallColor: "#34495e", spawnPoints: { x: 600, y: 150 },
+                colliders: [{x:0, y:0, w:1200, h:40}, {x:0, y:0, w:40, h:900}, {x:1160, y:0, w:40, h:900}, {x:0, y:860, w:1200, h:40}],
+                npcs: [{ id: "mom", name: "엄마", x: 450, y: 350, color: "#e74c3c", dialogues: [{ name: "엄마", text: "빨리 학교나 가렴!" }] }],
+                objects: [
+                    { name: "거실 대형 TV", x: 600, y: 70, w: 220, h: 40, color: "#111111", dialogues: [{ name: "TV 뉴스", text: "오늘 아침 기온은 선선하며 지각하기 딱 좋은 날씨입니다." }] }
+                ],
+                forcedEvent: { id: "event_mom_nag", dialogues: [{ name: "엄마", text: "늦어서 버스 놓쳤다고 엄마 탓하지 마라!" }, { name: "균", text: "지금 바로 나갈게요!" }] },
+                portals: [{ x: 600, y: 70, radius: 35, targetMap: "myRoom", label: "내 방" }, { x: 600, y: 820, radius: 35, targetMap: "entrance", label: "현관문" }]
+            },
+            "entrance": {
+                width: 600, height: 600, bgColor: "#707b7c", wallColor: "#95a5a6", spawnPoints: { x: 300, y: 150 },
+                colliders: [{x:0, y:0, w:600, h:40}, {x:0, y:0, w:40, h:600}, {x:560, y:0, w:40, h:600}, {x:0, y:560, w:600, h:40}],
+                objects: [{ name: "전신 거울", x: 500, y: 300, w: 40, h: 120, color: "#aed6f1", dialogues: [{ name: "균", text: "교복 핏이 완벽하군. 역시 나야." }] }],
+                portals: [{ x: 300, y: 70, radius: 35, targetMap: "livingRoom", label: "거실" }, { x: 300, y: 520, radius: 35, targetMap: "corridor", label: "바깥 복도" }]
+            },
+            "corridor": {
+                width: 1600, height: 400, bgColor: "#566573", wallColor: "#7f8c8d", spawnPoints: { x: 150, y: 200 },
+                colliders: [{x:0, y:0, w:1600, h:60}, {x:0, y:0, w:40, h:400}, {x:1560, y:0, w:40, h:400}, {x:0, y:340, w:1600, h:60}],
+                portals: [{ x: 150, y: 100, radius: 35, targetMap: "entrance", label: "우리 집" }, { x: 1450, y: 200, radius: 40, targetMap: "elevator", label: "엘리베이터 타기" }]
+            },
+            "elevator": {
+                width: 400, height: 400, bgColor: "#212f3d", wallColor: "#2c3e50", spawnPoints: { x: 200, y: 200 },
+                colliders: [{x:0, y:0, w:400, h:40}, {x:0, y:0, w:40, h:400}, {x:360, y:0, w:40, h:400}, {x:0, y:360, w:400, h:40}],
+                portals: [{ x: 70, y: 200, radius: 35, targetMap: "corridor", label: "아파트 복도" }, { x: 330, y: 200, radius: 35, targetMap: "floor1", label: "1층으로 내려가기" }]
+            },
+            "floor1": {
+                width: 800, height: 600, bgColor: "#4d5656", wallColor: "#5d6d7e", spawnPoints: { x: 150, y: 300 },
+                colliders: [{x:0, y:0, w:800, h:40}, {x:0, y:0, w:40, h:600}, {x:760, y:0, w:40, h:600}, {x:0, y:560, w:800, h:40}],
+                portals: [{ x: 100, y: 300, radius: 35, targetMap: "elevator", label: "엘리베이터 승강장" }, { x: 400, y: 520, radius: 40, targetMap: "outside", label: "아파트 밖으로" }]
+            },
+            "outside": {
+                width: 2000, height: 800, bgColor: "#117a65", wallColor: "#16a085", spawnPoints: { x: 200, y: 450 },
+                colliders: [{x:0, y:0, w:2000, h:120}, {x:0, y:680, w:2000, h:120}],
+                portals: [{ x: 200, y: 150, radius: 40, targetMap: "floor1", label: "아파트 동 입구" }, { x: 1850, y: 450, radius: 50, targetMap: "convenienceZone", label: "편의점 길목으로" }]
+            },
+            "convenienceZone": {
+                width: 1000, height: 600, bgColor: "#d35400", wallColor: "#e67e22", spawnPoints: { x: 150, y: 300 },
+                colliders: [{x:0, y:0, w:1000, h:40}, {x:0, y:560, w:1000, h:40}],
+                portals: [
+                    { x: 100, y: 300, radius: 45, targetMap: "outside", label: "뒤로 돌아가기" },
+                    { x: 500, y: 120, radius: 40, targetMap: "convenienceStore", label: "🏪 편의점 들어가기" },
+                    { x: 880, y: 300, radius: 45, targetMap: "busStop", label: "버스 정류장으로" }
+                ]
+            },
+            "convenienceStore": {
+                width: 800, height: 600, bgColor: "#fbfcfc", wallColor: "#bdc3c7", spawnPoints: { x: 400, y: 480 },
+                colliders: [{x:0, y:0, w:800, h:40}, {x:0, y:0, w:40, h:600}, {x:760, y:0, w:40, h:600}, {x:0, y:560, w:800, h:40}],
+                npcs: [{ name: "편의점 알바", x: 400, y: 120, color: "#9b59b6", dialogues: [{ name: "편의점 알바", text: "어서오세요! GS균균 편의점입니다." }] }],
+                portals: [{ x: 400, y: 520, radius: 35, targetMap: "convenienceZone", label: "밖으로 나가기" }]
+            },
+            "busStop": {
+                width: 1000, height: 600, bgColor: "#2e4053", wallColor: "#34495e", spawnPoints: { x: 150, y: 300 },
+                colliders: [{x:0, y:0, w:1000, h:40}, {x:0, y:560, w:1000, h:40}],
+                objects: [{
+                    name: "🚌 대형 등교 버스 (정차 중)", x: 630, y: 190, w: 300, h: 140, color: "#f39c12", actionName: "버스 타기", interactRadius: 130,
+                    onInteract: function() {
+                        DialogueSystem.start([
+                            { name: "안내방송", text: "이번 정류장은 학교 앞, 학교 앞입니다." },
+                            { name: "균", text: "좋아, 버스를 제때 잘 탔으니 학교로 가자!" }
+                        ], () => { Game.startBusLoading("schoolFront"); });
+                    }
+                }],
+                portals: [{ x: 100, y: 300, radius: 45, targetMap: "convenienceZone", label: "편의점 길목" }]
+            },
+            "schoolFront": {
+                width: 1200, height: 800, bgColor: "#9a7d0a", wallColor: "#b7950b", spawnPoints: { x: 200, y: 400 },
+                colliders: [{x:0, y:0, w:1200, h:80}, {x:0, y:720, w:1200, h:80}],
+                npcs: [{ name: "학주 선생님", x: 800, y: 300, color: "#2c3e50", dialogues: [{ name: "학주 선생님", text: "거기 너 복장 불량! 8시 30분 전까지 빨리 들어가라!" }] }],
+                portals: [{ x: 1050, y: 400, radius: 55, targetMap: "school1F", label: "🏫 학교 본관 건물 진입" }]
+            },
+
+            // ==================== 학교 1층 본관 복도 ====================
+            "school1F": {
+                width: 2200, height: 500, bgColor: "#7f8c8d", wallColor: "#34495e", spawnPoints: { x: 150, y: 300 },
+                colliders: [{x:0, y:0, w:2200, h:80}, {x:0, y:420, w:2200, h:80}],
+                portals: [
+                    { x: 100, y: 250, radius: 45, targetMap: "schoolFront", label: "학교 운동장" },
+                    // 각 교실 내부로 통하는 문들
+                    { x: 400, y: 100, radius: 35, targetMap: "room_class1", label: "🚪 1학년 반" },
+                    { x: 650, y: 100, radius: 35, targetMap: "room_art", label: "🚪 미술실" },
+                    { x: 900, y: 100, radius: 35, targetMap: "room_tech", label: "🚪 기가실" },
+                    { x: 1150, y: 100, radius: 35, targetMap: "room_principal", label: "🚪 교장실" },
+                    { x: 1380, y: 100, radius: 35, targetMap: "room_support", label: "🚪 통합지원반" },
+                    { x: 1600, y: 100, radius: 35, targetMap: "room_medical", label: "🚪 보건실" },
+                    { x: 1850, y: 100, radius: 35, targetMap: "room_library", label: "🚪 도서관" },
+                    // 2층 계단
+                    { x: 2100, y: 250, radius: 50, targetMap: "school2F", label: "🔼 계단 (2층으로)" }
+                ]
+            },
+
+            // ==================== 학교 1층 개별 방 내부 맵 데이터들 ====================
+            "room_class1": makeRoom("1학년 교실", "#d35400", [{name:"칠판 및 책상들", x:500, y:200, w:400, h:100, color:"#196f3d"}]),
+            "room_art": makeRoom("미술실", "#8e44ad", [{name:"미술용 석고상 및 이젤", x:500, y:250, w:300, h:120, color:"#d5dbdb"}]),
+            "room_tech": makeRoom("기술가정실", "#27ae60", [{name:"가사 조리 실습대", x:500, y:250, w:500, h:150, color:"#7f8c8d"}]),
+            "room_principal": makeRoom("교장실", "#2c3e50", [{name:"고급 가죽 소파", x:500, y:200, w:300, h:80, color:"#111"}], [{name:"교장선생님", x:500, y:120, color:"#34495e", dialogues:[{name:"교장", text:"허허, 균균고등학교의 미래가 밝구만."}]}]),
+            "room_support": makeRoom("통합지원반", "#f1c40f", [{name:"아늑한 원형 테이블", x:500, y:300, w:200, h:200, color:"#e67e22"}]),
+            "room_medical": makeRoom("보건실", "#e74c3c", [{name:"보건실 하얀 침대", x:300, y:200, w:150, h:250, color:"#fff"}], [{name:"보건선생님", x:700, y:200, color:"#f4d03f", dialogues:[{name:"보건쌤", text:"어디가 아파서 왔니? 약 줄까?"}]}]),
+            "room_library": makeRoom("도서관", "#a04000", [{name:"거대한 미로형 책장", x:500, y:220, w:700, h:150, color:"#7e5109"}]),
+
+
+            // ==================== 학교 2층 복도 구역 ====================
+            "school2F": {
+                width: 2400, height: 500, bgColor: "#a6acaf", wallColor: "#566573", spawnPoints: { x: 150, y: 300 },
+                colliders: [{x:0, y:0, w:2400, h:80}, {x:0, y:420, w:2400, h:80}],
+                portals: [
+                    { x: 100, y: 250, radius: 45, targetMap: "school1F", label: "🔽 계단 (1층으로)" },
+                    // 2층 교실/실습실 문 배치
+                    { x: 350, y: 100, radius: 35, targetMap: "room_computer", label: "🚪 컴퓨터실" },
+                    { x: 600, y: 100, radius: 35, targetMap: "room_career", label: "🚪 진로상담실" },
+                    { x: 850, y: 100, radius: 35, targetMap: "room_class2", label: "🚪 2학년 교실" },
+                    { x: 1100, y: 100, radius: 35, targetMap: "room_weclass", label: "🚪 상담실(WeClass)" },
+                    { x: 1350, y: 100, radius: 35, targetMap: "room_council", label: "🚪 학생자치회실" },
+                    { x: 1600, y: 100, radius: 35, targetMap: "room_class3", label: "🚪 3학년 교실" },
+                    { x: 1850, y: 100, radius: 35, targetMap: "room_science", label: "🚪 과학실" },
+                    { x: 2100, y: 100, radius: 35, targetMap: "room_staff", label: "🚪 교무실" },
+                    // 3층 계단
+                    { x: 2300, y: 250, radius: 50, targetMap: "school3F", label: "🔼 계단 (3층 음악실)" }
+                ]
+            },
+
+            // ==================== 학교 2층 개별 방 내부 맵 데이터들 ====================
+            "room_computer": makeRoom("컴퓨터실", "#2980b9", [{name:"최신 컴퓨터 책상 배열", x:500, y:250, w:600, h:160, color:"#2c3e50"}], [], "school2F"),
+            "room_career": makeRoom("진로상담실", "#27ae60", [{name:"진로 서적 전용 책장", x:500, y:200, w:400, h:80, color:"#ba4a00"}], [], "school2F"),
+            "room_class2": makeRoom("2학년 교실", "#d35400", [{name:"교실 교탁 및 칠판", x:500, y:150, w:300, h:60, color:"#196f3d"}], [], "school2F"),
+            "room_weclass": makeRoom("WeClass 상담실", "#1abc9c", [{name:"마음 안정용 티테이블", x:500, y:300, w:150, h:150, color:"#f5b041"}], [], "school2F"),
+            "room_council": makeRoom("학생자치회실", "#9b59b6", [{name:"학생회 회의용 대형 탁자", x:500, y:300, w:500, h:120, color:"#7f8c8d"}], [], "school2F"),
+            "room_class3": makeRoom("3학년 교실", "#ba4a00", [{name:"수능 D-Day 타이머 전광판", x:500, y:120, w:200, h:50, color:"#111"}], [], "school2F"),
+            "room_science": makeRoom("과학실", "#7f8c8d", [{name:"실험용 비커 및 과학 약품함", x:500, y:240, w:450, h:140, color:"#34495e"}], [], "school2F"),
+            "room_staff": makeRoom("교무실", "#2e4053", [{name:"선생님들 업무용 파티션 책상", x:500, y:260, w:700, h:200, color:"#bdc3c7"}], [], "school2F"),
+
+
+            // ==================== 학교 3층 대음악실 (초대형 구역) ====================
+            "school3F": {
+                width: 2400, height: 1200, bgColor: "#f5f5dc", wallColor: "#7e5109", spawnPoints: { x: 200, y: 600 },
+                colliders: [
+                    {x:0, y:0, w:2400, h:60}, {x:0, y:1140, w:2400, h:60},
+                    {x:0, y:0, w:60, h:1200}, {x:2340, y:0, w:60, h:1200}
+                ],
+                npcs: [{ name: "음악 선생님", x: 1200, y: 400, color: "#34495e", dialogues: [{ name: "음악쌤", text: "자, 전교생 여러분 모두 의자에 맞춰 바르게 앉아주세요!" }] }],
+                objects: [
+                    { name: "🎹 그랜드 피아노 (무대 중심)", x: 1200, y: 300, w: 160, h: 100, color: "#111111", dialogues: [{ name: "피아노", text: "반짝반짝하게 닦인 최고급 검은색 그랜드 피아노다." }] },
+                    { name: "📢 대형 음향 스피커 L", x: 800, y: 200, w: 60, h: 90, color: "#2c3e50", dialogues: [{ name: "스피커", text: "웅장한 소리를 출력하는 대형 스피커 하우징." }] },
+                    { name: "📢 대형 음향 스피커 R", x: 1600, y: 200, w: 60, h: 90, color: "#2c3e50", dialogues: [{ name: "스피커", text: "웅장한 소리를 출력하는 대형 스피커 하우징." }] },
+                    
+                    // 오케스트라 / 전교생 관람석 의자 대거 배치
+                    { name: "🪑 음악실 의자 1", x: 850, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    { name: "🪑 음악실 의자 2", x: 950, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    { name: "🪑 음악실 의자 3", x: 1050, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    { name: "🪑 음악실 의자 4", x: 1350, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    { name: "🪑 음악실 의자 5", x: 1450, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    { name: "🪑 음악실 의자 6", x: 1550, y: 550, w: 45, h: 45, color: "#cd6155", dialogues: [{ name: "의자", text: "학생들이 앉는 음악실 의자다." }] },
+                    
+                    { name: "🪑 관객석 긴 벤치 A", x: 1000, y: 800, w: 400, h: 50, color: "#af601a", dialogues: [{ name: "긴 벤치", text: "전교생 조례나 관람을 할 때 앉는 나무 장의자." }] },
+                    { name: "🪑 관객석 긴 벤치 B", x: 1000, y: 950, w: 400, h: 50, color: "#af601a", dialogues: [{ name: "긴 벤치", text: "전교생 조례나 관람을 할 때 앉는 나무 장의자." }] },
+                    { name: "🎷 악기 보관함", x: 2150, y: 300, w: 120, h: 250, color: "#784212", dialogues: [{ name: "보관함", text: "바이올린, 첼로, 플루트가 소중하게 잠겨있다." }] }
+                ],
+                portals: [
+                    { x: 150, y: 600, radius: 55, targetMap: "school2F", label: "🔽 계단 (2층으로)", color: "rgba(231, 76, 60, 0.8)", fillColor: "rgba(231, 76, 60, 0.2)" }
+                ]
+            }
+        };
+    }
+};
+
+// ENGINE START TRIGGER
+window.onload = () => {
+    Game.init();
+    setTimeout(() => {
+        DialogueSystem.start([
+            { name: "균", text: "으음... 벌써 오전 6시인가? 눈이 떠졌네." },
+            { name: "균", text: "오늘은 학교에 가는 날이다. 서둘러 바깥으로 나가자!" }
+        ]);
+    }, 600);
+};
+</script>
+
+</body>
+</html>
