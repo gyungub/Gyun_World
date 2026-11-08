@@ -1,0 +1,352 @@
+[
+  {
+    "id": "overview",
+    "title": "균균월드",
+    "category": "world",
+    "status": "confirmed",
+    "summary": "균을 중심으로 신격, 세력, 기록과 진실이 얽혀 있는 세계관.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "균균월드는 균을 중심으로 신격, 세력, 기록, 진실이 얽혀 있는 세계관이다. 각 세력은 서로 다른 목적과 신념을 가지며, 기록된 역사와 실제 진실 사이에 차이가 존재할 수 있다."
+      },
+      {
+        "heading": "핵심 원칙",
+        "text": "설정의 최종 결정권은 창작자 균에게 있다. 논의 중인 아이디어와 확정된 설정을 구분한다. 미확인 존재의 정체를 임의로 확정하지 않는다."
+      },
+      {
+        "heading": "주요 구성",
+        "text": "주요 세력으로 영광, SOD, 임루아의 검, 반균파, 무위, 균교가 있다. 주요 인물 및 존재로 균, 임루아, 이면, 잠결 등이 언급된다."
+      }
+    ],
+    "related": [
+      "glory",
+      "sod",
+      "anti-gyun",
+      "muui",
+      "gyun-cult"
+    ]
+  },
+  {
+    "id": "gyun",
+    "title": "균",
+    "category": "people",
+    "status": "confirmed",
+    "summary": "균균월드의 절대적인 중심이자 균교의 숭배 대상. SOD의 창설자.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "균은 균균월드의 중심이 되는 존재이며 균교의 숭배 대상이다. SOD를 창설했다."
+      },
+      {
+        "heading": "영광과의 관계",
+        "text": "과거 영광과의 전쟁 및 균의 패배가 논의되었다. 전쟁의 구체적인 경위와 균 개인의 당시 전력은 추가 정리가 필요하다."
+      }
+    ],
+    "related": [
+      "glory",
+      "sod",
+      "gyun-cult"
+    ]
+  },
+  {
+    "id": "imrua",
+    "title": "임루아",
+    "category": "people",
+    "status": "confirmed",
+    "summary": "임루아의 검 창립자이자 수장. SOD 계급은 Archslayer.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "임루아는 임루아의 검을 창립하고 이끄는 인물이다. SOD 계급은 Archslayer이며 Primarch가 아니다."
+      },
+      {
+        "heading": "관계",
+        "text": "임루아는 균의 직접적인 라이벌로 설정되지 않았다. 반균파와 대립하는 핵심 인물이다."
+      },
+      {
+        "heading": "전력 관련",
+        "text": "임루아 개인은 영광의 칼과 일대일로 상대할 수 없는 수준으로 논의되었다. 감시자의 눈에 대해서도 임루아의 검 전병력을 동원해야 할 정도의 위협으로 설정되었다."
+      }
+    ],
+    "related": [
+      "sod",
+      "sword-order",
+      "anti-gyun",
+      "glory-sword",
+      "watchers-eye"
+    ]
+  },
+  {
+    "id": "imeon",
+    "title": "이면",
+    "category": "people",
+    "status": "confirmed",
+    "summary": "진실을 기록하는 인물. 무위의 창립자이자 기록관 역할을 맡는다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "이면은 균균월드의 진실과 기록을 다루는 인물이다. 무위의 창립자다."
+      },
+      {
+        "heading": "행동 원칙",
+        "text": "이면은 약해서 싸우지 않는 인물이 아니다. 스스로 싸움을 선택하지 않는다는 설정이다."
+      },
+      {
+        "heading": "과거 사건",
+        "text": "영광과의 과거 사건에서 도망친 인물은 무위가 아니라 이면으로 정정되었다. 당시의 구체적인 경위는 미확정이다."
+      }
+    ],
+    "related": [
+      "muui",
+      "glory"
+    ]
+  },
+  {
+    "id": "jamgyeol",
+    "title": "잠결",
+    "category": "people",
+    "status": "confirmed",
+    "summary": "반균파의 창립자.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "잠결은 반균파를 창립한 인물이다."
+      },
+      {
+        "heading": "관련 설정",
+        "text": "반균파의 기원으로 SOD의 이중적인 기준, 특히 균을 죽이지 않는 원칙에 대한 반발이 논의되었다. 세부적인 과거와 임루아와의 관계는 추가 정리가 필요하다."
+      }
+    ],
+    "related": [
+      "anti-gyun",
+      "imrua"
+    ]
+  },
+  {
+    "id": "glory",
+    "title": "영광",
+    "category": "factions",
+    "status": "proposed",
+    "summary": "과거 신격들이 모인 집단으로 논의된 세력. 현재 공개된 전력은 전체의 일부에 불과하다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "영광은 과거 신격들이 모인 집단이라는 설정이 논의되었다. 영광의 전체 구성원과 조직 구조, 최상위 전력은 아직 공개되거나 확정되지 않았다."
+      },
+      {
+        "heading": "전력의 규모",
+        "text": "영광의 칼은 영광 내부 중상위권 정도의 강함으로 설정되었다. 감시자의 눈은 영광의 최약체 수준으로 설정되었다. 따라서 지금까지 언급된 존재들만으로 영광 전체의 전력을 판단할 수 없다."
+      },
+      {
+        "heading": "균과의 과거",
+        "text": "과거 균이 영광에게 패배했고, 이후 영광을 베어내기 위해 SOD가 만들어졌으며 SOD가 영광과의 싸움에서 승리했다는 구상이 논의되었다. 세부 사건과 정사 확정 여부는 추가 확인이 필요하다."
+      },
+      {
+        "heading": "미공개 요소",
+        "text": "영광의 전체 구성원, 각 구성원의 서열, 조직의 목적과 구조, 전쟁의 정확한 연표는 미확정이다. 영광이 전부 등장한 것이 아니라는 점이 핵심이다."
+      }
+    ],
+    "related": [
+      "glory-sword",
+      "watchers-eye",
+      "sod",
+      "gyun",
+      "imeon"
+    ]
+  },
+  {
+    "id": "glory-sword",
+    "title": "영광의 칼 (임시 명칭)",
+    "category": "people",
+    "status": "proposed",
+    "summary": "영광의 의지를 실행하며 앞장서서 적을 베어 넘기는 존재. 실제 무기가 아닌 인물·존재의 역할을 가리킨다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "'영광의 칼'은 실제 무기를 뜻하지 않는다. 영광이 하는 일을 앞장서 수행하고, 영광의 의지에 따라 적을 베어 넘기는 존재를 가리키는 임시 호칭이다. 균과 임루아가 인물인 것처럼, 칼 역시 하나의 존재다."
+      },
+      {
+        "heading": "전투력",
+        "text": "영광 내부 중상위권 정도의 강함으로 설정되었다. 임루아 개인이 일대일로 상대할 수 없는 수준이다."
+      },
+      {
+        "heading": "서사적 역할",
+        "text": "영광의 칼은 영광의 진정한 전력을 전부 공개하지 않으면서도, 영광의 위협을 독자에게 체감시키는 '영광의 맛보기' 역할을 한다. 영광의 칼보다 강한 영광의 존재들이 더 남아 있다."
+      },
+      {
+        "heading": "미확정 사항",
+        "text": "정식 이름, 외형, 구체적인 능력, 성격과 과거는 아직 정해지지 않았다."
+      }
+    ],
+    "related": [
+      "glory",
+      "watchers-eye",
+      "imrua"
+    ]
+  },
+  {
+    "id": "watchers-eye",
+    "title": "감시자의 눈",
+    "category": "people",
+    "status": "proposed",
+    "summary": "영광의 최약체 수준으로 설정된 존재. 그럼에도 임루아의 검 전병력이 필요한 위협이다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "감시자의 눈은 영광에 속한 존재다. 영광 내부에서는 최약체 수준으로 설정되었다."
+      },
+      {
+        "heading": "전투력",
+        "text": "임루아 같은 인물은 감시자의 눈을 일대일로 상대할 수 없으며, 임루아의 검 전병력을 동원해야 할 수준으로 논의되었다. 영광의 최약체가 다른 세력에는 압도적인 위협이 된다는 점이 핵심이다."
+      },
+      {
+        "heading": "미확정 사항",
+        "text": "외형, 세부 능력, 감시자로서의 구체적인 임무와 정식 서열은 추가 설정이 필요하다."
+      }
+    ],
+    "related": [
+      "glory",
+      "glory-sword",
+      "sword-order"
+    ]
+  },
+  {
+    "id": "sod",
+    "title": "SOD",
+    "category": "factions",
+    "status": "confirmed",
+    "summary": "Slayer of Divinity. 균이 창설한 조직으로, 신격을 베어낸 자들이라는 정체성을 가진다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "SOD는 Slayer of Divinity의 약자다. 표어는 'Even Heaven Bows'이며, 실력으로 증명하는 실력크루라는 방향성을 가진다."
+      },
+      {
+        "heading": "창설",
+        "text": "SOD의 창설자는 균이다. 영광을 베어내기 위해 만들어졌다는 과거 설정이 논의되었다."
+      },
+      {
+        "heading": "계급",
+        "text": "Recruit → Reaver → Harbinger → Archslayer → Primarch."
+      },
+      {
+        "heading": "중요한 설정",
+        "text": "균이 창설자라는 사실과 SOD가 신격을 베어냈다는 역사, 과거 균이 영광에게 패배했다는 설정은 함께 유지해야 한다."
+      }
+    ],
+    "related": [
+      "imrua",
+      "sword-order",
+      "glory",
+      "gyun"
+    ]
+  },
+  {
+    "id": "sword-order",
+    "title": "임루아의 검",
+    "category": "factions",
+    "status": "confirmed",
+    "summary": "SOD 산하 조직. 임루아가 창립자이자 수장이다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "임루아의 검은 SOD 산하 조직이며 임루아가 창립하고 이끈다. SOD 전체와 동일한 조직이 아니다."
+      },
+      {
+        "heading": "수장",
+        "text": "임루아는 SOD 계급 Archslayer다."
+      },
+      {
+        "heading": "영광과의 전력 차이",
+        "text": "감시자의 눈 하나를 상대하기 위해 임루아의 검 전병력이 필요하다는 전력 구도가 논의되었다."
+      }
+    ],
+    "related": [
+      "sod",
+      "imrua",
+      "watchers-eye"
+    ]
+  },
+  {
+    "id": "anti-gyun",
+    "title": "반균파",
+    "category": "factions",
+    "status": "proposed",
+    "summary": "균의 질서에 반대하는 세력. 창립자는 잠결이다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "반균파는 균의 질서에 반대하는 세력이며 창립자는 잠결이다. 약한 세력으로 묘사하지 않는다."
+      },
+      {
+        "heading": "기원",
+        "text": "SOD의 이중적인 기준, 특히 균을 죽이지 않는 원칙에 반발한 전직 SOD 인물들이 합류했다는 기원이 논의되었다. 세부 기원은 확정이 필요하다."
+      }
+    ],
+    "related": [
+      "jamgyeol",
+      "imrua",
+      "sod"
+    ]
+  },
+  {
+    "id": "muui",
+    "title": "무위(無位)",
+    "category": "factions",
+    "status": "confirmed",
+    "summary": "이면이 창립한 집단. 숭배가 아닌 추종을 기반으로 하며 절대적인 안정을 추구한다.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "무위는 이면이 창립한 집단이다. 균을 숭배하지 않으며, 무위를 따르는 집단으로 설정되었다."
+      },
+      {
+        "heading": "이념",
+        "text": "핵심 이념은 절대적인 안정이다."
+      },
+      {
+        "heading": "힘의 성격",
+        "text": "무위의 힘은 균과 단순한 전투력 수치로 비교하기 어려운 다른 축의 힘으로 설정되었다."
+      }
+    ],
+    "related": [
+      "imeon",
+      "glory"
+    ]
+  },
+  {
+    "id": "gyun-cult",
+    "title": "균교",
+    "category": "factions",
+    "status": "confirmed",
+    "summary": "균을 숭배하는 집단이자 연구·기록 체계.",
+    "updated": "2026-11-08",
+    "sections": [
+      {
+        "heading": "개요",
+        "text": "균교는 균을 숭배하는 집단이다. 균교 비밀연구소를 통해 변칙 현상, 괴담, 미확인 존재 등을 조사하고 기록한다."
+      },
+      {
+        "heading": "연구 문서",
+        "text": "문서의 기본 구성은 조사 기록 → 증언 → 사건의 전말 순서로 구성할 수 있다. 모든 문서가 미스터리를 완전히 해결할 필요는 없다."
+      }
+    ],
+    "related": [
+      "gyun",
+      "overview"
+    ]
+  }
+]
